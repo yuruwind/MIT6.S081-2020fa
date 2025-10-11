@@ -80,3 +80,27 @@ kalloc(void)
     memset((char*)r, 5, PGSIZE); // fill with junk
   return (void*)r;
 }
+
+// Returns the amount of free memory in bytes.
+uint64
+get_free_memory(void)
+{
+  struct run *r;
+  uint64 count = 0;
+
+  // 必须先获取锁，因为其他CPU可能同时在修改 freelist
+  acquire(&kmem.lock);
+  
+  // 遍历整个空闲页链表
+  r = kmem.freelist;
+  while(r){
+    count++;
+    r = r->next;
+  }
+  
+  // 操作完成，释放锁
+  release(&kmem.lock);
+
+  // 返回总字节数
+  return count * PGSIZE;
+}

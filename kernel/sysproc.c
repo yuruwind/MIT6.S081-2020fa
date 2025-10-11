@@ -6,6 +6,7 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "sysinfo.h"
 
 uint64
 sys_exit(void)
@@ -106,5 +107,16 @@ sys_trace(void)
 
   myproc()->tracemask = mask;
 
+  return 0;
+}
+
+uint64 sys_sysinfo(){
+  uint64 st;
+  argaddr(0, &st);//获取从用户空间传入的指针。
+  struct sysinfo p;//将信息存在结构体中
+  p.nproc = get_used_proc();
+  p.freemem = get_free_memory();
+  if(copyout(myproc()->pagetable, st, (char *)&p, sizeof(p)) < 0)//拷贝回用户空间
+  return -1;
   return 0;
 }
